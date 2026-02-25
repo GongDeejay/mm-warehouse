@@ -323,7 +323,12 @@ export default function Home() {
                       </a>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="shrink-0 hover:bg-red-50 hover:text-red-600">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 hover:bg-red-50 hover:text-red-600"
+                          onClick={() => setDeleteLinkId(link.id)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -353,14 +358,15 @@ export default function Home() {
                             onClick={() => {
                               setDeletePassword('');
                               setDeleteError('');
+                              setDeleteLinkId(null);
                             }}
                           >
                             取消
                           </AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => {
-                              setDeleteLinkId(link.id);
-                              handleDelete();
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              await handleDelete();
                             }}
                           >
                             删除
