@@ -133,18 +133,12 @@ export default function Home() {
 
   // 删除链接
   const handleDelete = async () => {
-    console.log('=== 开始删除流程 ===');
-    console.log('deleteLinkId:', deleteLinkId);
-    console.log('deletePassword:', deletePassword);
-
     if (!deleteLinkId) {
-      console.error('deleteLinkId 为空');
       setDeleteError('删除失败：未选择要删除的链接');
       return;
     }
 
     if (deletePassword !== '12345') {
-      console.error('密码错误');
       setDeleteError('密码错误');
       return;
     }
@@ -152,29 +146,15 @@ export default function Home() {
     setDeleteError('');
 
     try {
-      console.log('发送删除请求...');
       const res = await fetch('/api/links', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: deleteLinkId, password: deletePassword }),
       });
 
-      console.log('响应状态:', res.status);
-      console.log('响应 ok:', res.ok);
-      console.log('响应 headers:', Object.fromEntries(res.headers.entries()));
-
-      // 先检查响应是否有内容
-      const contentType = res.headers.get('content-type');
-      console.log('Content-Type:', contentType);
-
-      // 获取响应体
       const text = await res.text();
-      console.log('响应内容:', text);
-      console.log('响应内容长度:', text.length);
-      console.log('响应内容是否为空:', text.length === 0);
 
       if (!text || text.length === 0) {
-        console.error('响应体为空！');
         setDeleteError('服务器未返回响应');
         return;
       }
@@ -183,29 +163,21 @@ export default function Home() {
       try {
         json = JSON.parse(text);
       } catch (e) {
-        console.error('JSON 解析失败:', e);
-        console.error('原始文本:', text);
-        setDeleteError(`服务器响应错误: ${e instanceof SyntaxError ? 'JSON 格式错误' : '未知错误'}`);
+        setDeleteError('服务器响应错误');
         return;
       }
 
-      console.log('解析后的 JSON:', json);
-
       if (json.error) {
-        console.error('删除失败:', json.error);
         setDeleteError(json.error);
         return;
       }
 
-      console.log('删除成功，刷新列表...');
       await fetchLinks();
       setDeletePassword('');
       setDeleteLinkId(null);
-      setIsDeleteDialogOpen(false); // 关闭对话框
-      console.log('=== 删除流程完成 ===');
+      setIsDeleteDialogOpen(false);
     } catch (error) {
-      console.error('删除异常:', error);
-      setDeleteError(`删除失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      setDeleteError('删除失败，请重试');
     }
   };
 
@@ -240,6 +212,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* 欢迎横幅 */}
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-green-600 bg-clip-text text-transparent">
+            欢迎来到 M+M！
+          </h1>
+          <p className="text-muted-foreground mt-2">简单、好用的链接管理工具</p>
+        </div>
+
         {/* 顶部统计 */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <Card className="border-l-4 border-l-blue-500">
