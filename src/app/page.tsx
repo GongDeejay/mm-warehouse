@@ -161,19 +161,35 @@ export default function Home() {
 
       console.log('响应状态:', res.status);
       console.log('响应 ok:', res.ok);
+      console.log('响应 headers:', Object.fromEntries(res.headers.entries()));
 
+      // 先检查响应是否有内容
+      const contentType = res.headers.get('content-type');
+      console.log('Content-Type:', contentType);
+
+      // 获取响应体
       const text = await res.text();
       console.log('响应内容:', text);
       console.log('响应内容长度:', text.length);
+      console.log('响应内容是否为空:', text.length === 0);
+
+      if (!text || text.length === 0) {
+        console.error('响应体为空！');
+        setDeleteError('服务器未返回响应');
+        return;
+      }
 
       let json;
       try {
         json = JSON.parse(text);
       } catch (e) {
         console.error('JSON 解析失败:', e);
-        setDeleteError('服务器响应错误');
+        console.error('原始文本:', text);
+        setDeleteError(`服务器响应错误: ${e instanceof SyntaxError ? 'JSON 格式错误' : '未知错误'}`);
         return;
       }
+
+      console.log('解析后的 JSON:', json);
 
       if (json.error) {
         console.error('删除失败:', json.error);
@@ -189,7 +205,7 @@ export default function Home() {
       console.log('=== 删除流程完成 ===');
     } catch (error) {
       console.error('删除异常:', error);
-      setDeleteError('删除失败，请重试');
+      setDeleteError(`删除失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 
@@ -360,10 +376,14 @@ export default function Home() {
                         </div>
                       </a>
                       <Button
+                        type="button"
                         variant="ghost"
                         size="icon"
                         className="shrink-0 hover:bg-red-50 hover:text-red-600"
-                        onClick={() => openDeleteDialog(link.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteDialog(link.id);
+                        }}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -390,20 +410,20 @@ export default function Home() {
                               setDeleteError('');
                             }}
                             placeholder="输入删除密码"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                handleDelete();
-                              }
-                            }}
                           />
                           {deleteError && <p className="text-sm text-red-500">{deleteError}</p>}
                         </div>
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" onClick={closeDeleteDialog}>
+                          <Button type="button" variant="outline" onClick={(e) => {
+                            e.stopPropagation();
+                            closeDeleteDialog();
+                          }}>
                             取消
                           </Button>
-                          <Button variant="destructive" onClick={handleDelete}>
+                          <Button type="button" variant="destructive" onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete();
+                          }}>
                             删除
                           </Button>
                         </div>
