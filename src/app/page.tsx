@@ -133,12 +133,18 @@ export default function Home() {
 
   // 删除链接
   const handleDelete = async () => {
+    console.log('=== 开始删除流程 ===');
+    console.log('deleteLinkId:', deleteLinkId);
+    console.log('deletePassword:', deletePassword);
+
     if (!deleteLinkId) {
+      console.error('deleteLinkId 为空');
       setDeleteError('删除失败：未选择要删除的链接');
       return;
     }
 
     if (deletePassword !== '12345') {
+      console.error('密码错误');
       setDeleteError('密码错误');
       return;
     }
@@ -146,31 +152,43 @@ export default function Home() {
     setDeleteError('');
 
     try {
+      console.log('发送删除请求...');
       const res = await fetch('/api/links', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: deleteLinkId, password: deletePassword }),
       });
 
+      console.log('响应状态:', res.status);
+      console.log('响应 ok:', res.ok);
+
       const text = await res.text();
+      console.log('响应内容:', text);
+      console.log('响应内容长度:', text.length);
+
       let json;
       try {
         json = JSON.parse(text);
       } catch (e) {
+        console.error('JSON 解析失败:', e);
         setDeleteError('服务器响应错误');
         return;
       }
 
       if (json.error) {
+        console.error('删除失败:', json.error);
         setDeleteError(json.error);
         return;
       }
 
+      console.log('删除成功，刷新列表...');
       await fetchLinks();
       setDeletePassword('');
       setDeleteLinkId(null);
       setIsDeleteDialogOpen(false); // 关闭对话框
+      console.log('=== 删除流程完成 ===');
     } catch (error) {
+      console.error('删除异常:', error);
       setDeleteError('删除失败，请重试');
     }
   };
@@ -341,17 +359,19 @@ export default function Home() {
                           </div>
                         </div>
                       </a>
-                    <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="shrink-0 hover:bg-red-50 hover:text-red-600"
-                          onClick={() => openDeleteDialog(link.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0 hover:bg-red-50 hover:text-red-600"
+                        onClick={() => openDeleteDialog(link.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+
+                    <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => {
+                      if (!open) closeDeleteDialog();
+                      setIsDeleteDialogOpen(open);
+                    }}>
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>确认删除</DialogTitle>
