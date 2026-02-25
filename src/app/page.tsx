@@ -35,17 +35,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 
 interface Link {
@@ -64,6 +53,7 @@ export default function Home() {
   const [deleteLinkId, setDeleteLinkId] = useState<string | null>(null);
   const [addError, setAddError] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // 随机图标列表
   const iconList = [
@@ -143,7 +133,12 @@ export default function Home() {
 
   // 删除链接
   const handleDelete = async () => {
-    if (!deleteLinkId || deletePassword !== '12345') {
+    if (!deleteLinkId) {
+      setDeleteError('删除失败：未选择要删除的链接');
+      return;
+    }
+
+    if (deletePassword !== '12345') {
       setDeleteError('密码错误');
       return;
     }
@@ -157,7 +152,15 @@ export default function Home() {
         body: JSON.stringify({ id: deleteLinkId, password: deletePassword }),
       });
 
-      const json = await res.json();
+      const text = await res.text();
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        setDeleteError('服务器响应错误');
+        return;
+      }
+
       if (json.error) {
         setDeleteError(json.error);
         return;
@@ -166,9 +169,26 @@ export default function Home() {
       await fetchLinks();
       setDeletePassword('');
       setDeleteLinkId(null);
+      setIsDeleteDialogOpen(false); // 关闭对话框
     } catch (error) {
       setDeleteError('删除失败，请重试');
     }
+  };
+
+  // 打开删除对话框
+  const openDeleteDialog = (id: string) => {
+    setDeleteLinkId(id);
+    setDeletePassword('');
+    setDeleteError('');
+    setIsDeleteDialogOpen(true);
+  };
+
+  // 关闭删除对话框
+  const closeDeleteDialog = () => {
+    setDeletePassword('');
+    setDeleteError('');
+    setDeleteLinkId(null);
+    setIsDeleteDialogOpen(false);
   };
 
   // 统计数量
@@ -321,24 +341,24 @@ export default function Home() {
                           </div>
                         </div>
                       </a>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                    <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                      <DialogTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="shrink-0 hover:bg-red-50 hover:text-red-600"
-                          onClick={() => setDeleteLinkId(link.id)}
+                          onClick={() => openDeleteDialog(link.id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>确认删除</AlertDialogTitle>
-                          <AlertDialogDescription>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>确认删除</DialogTitle>
+                          <DialogDescription>
                             确定要删除 "{link.name}" 吗？此操作无法撤销。
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
+                          </DialogDescription>
+                        </DialogHeader>
                         <div className="space-y-2 my-4">
                           <Label htmlFor="delete-password">删除密码</Label>
                           <Input
@@ -350,30 +370,25 @@ export default function Home() {
                               setDeleteError('');
                             }}
                             placeholder="输入删除密码"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleDelete();
+                              }
+                            }}
                           />
                           {deleteError && <p className="text-sm text-red-500">{deleteError}</p>}
                         </div>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel
-                            onClick={() => {
-                              setDeletePassword('');
-                              setDeleteError('');
-                              setDeleteLinkId(null);
-                            }}
-                          >
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={closeDeleteDialog}>
                             取消
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={async (e) => {
-                              e.preventDefault();
-                              await handleDelete();
-                            }}
-                          >
+                          </Button>
+                          <Button variant="destructive" onClick={handleDelete}>
                             删除
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
