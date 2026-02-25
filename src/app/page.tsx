@@ -1,7 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Gamepad2, Smartphone } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Gamepad2,
+  Smartphone,
+  Star,
+  Heart,
+  Bolt,
+  Globe,
+  Zap,
+  Sparkles,
+  Globe2,
+  Layout,
+  Monitor,
+  Puzzle,
+  Rocket,
+  Tag,
+  Gift,
+  Crown,
+  Diamond,
+  Layers,
+  Grid,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +64,33 @@ export default function Home() {
   const [deleteLinkId, setDeleteLinkId] = useState<string | null>(null);
   const [addError, setAddError] = useState('');
   const [deleteError, setDeleteError] = useState('');
+
+  // 随机图标列表
+  const iconList = [
+    Star,
+    Heart,
+    Bolt,
+    Globe,
+    Zap,
+    Sparkles,
+    Globe2,
+    Layout,
+    Monitor,
+    Puzzle,
+    Rocket,
+    Tag,
+    Gift,
+    Crown,
+    Diamond,
+    Layers,
+    Grid,
+  ];
+
+  // 根据链接 ID 获取随机图标
+  const getRandomIcon = (id: string) => {
+    const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return iconList[hash % iconList.length];
+  };
 
   // 获取所有链接
   const fetchLinks = async () => {
@@ -229,37 +278,49 @@ export default function Home() {
               </CardContent>
             </Card>
           ) : (
-            links.map((link) => (
-              <Card key={link.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            link.category === '游戏'
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                              : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                          }`}
-                        >
-                          {link.category === '游戏' ? (
-                            <Gamepad2 className="w-3 h-3" />
-                          ) : (
-                            <Smartphone className="w-3 h-3" />
-                          )}
-                          {link.category}
-                        </span>
-                        <h3 className="text-lg font-semibold truncate">{link.name}</h3>
-                      </div>
+            links.map((link) => {
+              const RandomIcon = getRandomIcon(link.id);
+              return (
+                <Card key={link.id} className="hover:shadow-lg transition-all hover:scale-[1.02]">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between gap-4">
                       <a
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-muted-foreground hover:text-blue-600 transition-colors truncate block"
+                        className="flex-1 min-w-0 flex items-center gap-3 group"
                       >
-                        {link.url}
+                        <div
+                          className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                            link.category === '游戏'
+                              ? 'bg-gradient-to-br from-blue-400 to-blue-600 text-white'
+                              : 'bg-gradient-to-br from-green-400 to-green-600 text-white'
+                          }`}
+                        >
+                          <RandomIcon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                link.category === '游戏'
+                                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                                  : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                              }`}
+                            >
+                              {link.category === '游戏' ? (
+                                <Gamepad2 className="w-3 h-3" />
+                              ) : (
+                                <Smartphone className="w-3 h-3" />
+                              )}
+                              {link.category}
+                            </span>
+                            <h3 className="text-lg font-semibold truncate group-hover:text-blue-600 transition-colors">
+                              {link.name}
+                            </h3>
+                          </div>
+                        </div>
                       </a>
-                    </div>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="shrink-0 hover:bg-red-50 hover:text-red-600">
@@ -310,7 +371,8 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
-            ))
+            );
+            })
           )}
         </div>
       </div>

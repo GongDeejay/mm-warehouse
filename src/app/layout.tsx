@@ -4,10 +4,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: '链接管理',
-    template: '%s | 链接管理',
+    default: 'M+M仓',
+    template: '%s | M+M仓',
   },
-  description: '极简的链接管理应用，支持游戏和应用分类',
+  description: 'M+M仓 - 极简的链接管理应用',
 };
 
 export default function RootLayout({
