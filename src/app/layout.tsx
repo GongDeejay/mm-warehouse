@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Inspector } from 'react-dev-inspector';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -10,17 +9,26 @@ export const metadata: Metadata = {
   description: 'M+M仓 - 极简的链接管理应用',
 };
 
-export default function RootLayout({
+// 动态导入开发工具，只在开发环境加载
+async function DevInspector() {
+  if (process.env.NODE_ENV === 'development') {
+    const { Inspector } = await import('react-dev-inspector');
+    return <Inspector />;
+  }
+  return null;
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isDev = process.env.NODE_ENV === 'development';
+  const InspectorComponent = await DevInspector();
 
   return (
     <html lang="zh-CN">
       <body className={`antialiased`}>
-        {isDev && <Inspector />}
+        {InspectorComponent}
         {children}
       </body>
     </html>
